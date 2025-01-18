@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encrypt and Decrypt Text</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --secondary-color: #f0f0f0;
+      --text-color: #333;
+      --background-color: #1a1a2e;
+      --accent-color: #16213e;
+      --input-background: #eaeaea;
+      --box-border-color: #00a8cc;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h2 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    .box {
+      flex: 1;
+      min-width: 300px;
+      background: var(--accent-color);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      border: 2px solid var(--box-border-color);
+      position: relative;
+    }
+
+    .box h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--primary-color);
+    }
+
+    .logo {
+      width: 24px;
+      height: 24px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin: 10px 0 5px;
+      color: var(--primary-color);
+    }
+
+    textarea, input[type="password"], button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid var(--primary-color);
+      margin-bottom: 15px;
+      font-size: 1rem;
+      background-color: var(--input-background);
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: darkblue;
+    }
+
+    textarea[readonly] {
+      background-color: var(--secondary-color);
+    }
+
+    footer {
+      text-align: center;
+      color: white;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      textarea, input[type="password"], button {
+        font-size: 0.9rem;
+      }
+
+      button {
+        padding: 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      textarea, input[type="password"] {
+        padding: 8px;
+        font-size: 0.8rem;
+      }
+
+      button {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔒 Secure Text Encryption</h2>
+
+  <div class="container">
+    <div class="box">
+      <h3><img src="https://img.icons8.com/ios-filled/50/007bff/lock.png" alt="Encrypt Logo" class="logo"> Encrypt</h3>
+      <label for="plaintext">Plaintext:</label>
+      <textarea id="plaintext" placeholder="Enter text to encrypt" rows="3"></textarea>
+
+      <label for="encrypt-password">Password:</label>
+      <input type="password" id="encrypt-password" placeholder="Enter password">
+
+      <button onclick="encrypt()">Encrypt</button>
+
+      <label for="ciphertext">Ciphertext:</label>
+      <textarea id="ciphertext" rows="3" readonly></textarea>
+    </div>
+
+    <div class="box">
+      <h3><img src="https://img.icons8.com/ios-filled/50/007bff/unlock.png" alt="Decrypt Logo" class="logo"> Decrypt</h3>
+      <label for="decrypt-ciphertext">Ciphertext:</label>
+      <textarea id="decrypt-ciphertext" placeholder="Enter ciphertext" rows="3"></textarea>
+
+      <label for="decrypt-password">Password:</label>
+      <input type="password" id="decrypt-password" placeholder="Enter password">
+
+      <button onclick="decrypt()">Decrypt</button>
+
+      <label for="decrypted">Decrypted Text:</label>
+      <textarea id="decrypted" rows="3" readonly></textarea>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2024 ENCApp | Your Data, Our Priority
+  </footer>
+
+  <script>
+    function encrypt() {
+      var plaintext = document.getElementById("plaintext").value.trim();
+      var password = document.getElementById("encrypt-password").value.trim();
+
+      if (!plaintext) {
+        alert("Enter text to encrypt.");
+        return;
+      }
+
+      var salt = CryptoJS.lib.WordArray.random(128/8);
+      var iv = CryptoJS.lib.WordArray.random(128/8);
+      var key = CryptoJS.PBKDF2(password, salt, { keySize: 256/32 });
+      var encrypted = CryptoJS.AES.encrypt(plaintext, key, { iv: iv });
+
+      var ciphertext = CryptoJS.enc.Base64.stringify(salt) + CryptoJS.enc.Base64.stringify(iv) + encrypted.toString();
+      document.getElementById("ciphertext").value = ciphertext;
+    }
+
+    function decrypt() {
+      var ciphertext = document.getElementById("decrypt-ciphertext").value.trim();
+      var password = document.getElementById("decrypt-password").value.trim();
+
+      if (!ciphertext) {
+        alert("Enter ciphertext to decrypt.");
+        return;
+      }
+
+      try {
+        var salt = CryptoJS.enc.Base64.parse(ciphertext.substring(0, 24));
+        var iv = CryptoJS.enc.Base64.parse(ciphertext.substring(24, 48));
+        var encryptedText = ciphertext.substring(48);
+
+        var key = CryptoJS.PBKDF2(password, salt, { keySize: 256/32 });
+        var decrypted = CryptoJS.AES.decrypt(encryptedText, key, { iv: iv });
+        var plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+
+        document.getElementById("decrypted").value = plaintext || "Invalid password or data!";
+      } catch (e) {
+        document.getElementById("decrypted").value = "Decryption failed!";
+      }
+    }
+  </script>
+
+</body>
+</html>
